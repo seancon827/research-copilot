@@ -44,10 +44,10 @@ export async function complete({ system, user, temperature = 0.2, maxTokens = 14
  * your schema. The retry passes the Zod error back to the model, which fixes
  * the overwhelming majority of shape violations on the second pass.
  */
-export async function completeJson<T>(
-  schema: z.ZodType<T>,
+export async function completeJson<S extends z.ZodTypeAny>(
+  schema: S,
   { system, user, temperature = 0.1, maxTokens = 2600 }: CompletionOpts
-): Promise<T> {
+): Promise<z.output<S>> {
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: "system", content: `${system}\n\nRespond with a single JSON object and no other text.` },
     { role: "user", content: user },
