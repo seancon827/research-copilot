@@ -148,7 +148,7 @@ export function buildEvidence(input: {
       )}, operating margin ${fmtPct(d?.operatingMargin)}, ROE ${fmtPct(d?.roe)}, ROIC ${fmtPct(
         d?.roic
       )}, revenue growth ${fmtPct(d?.revenueGrowthYoY)}.`,
-      { provider: "fundamentals", asOf: now, period: period.period }
+      { provider: "fundamentals", asOf: now }
     );
   }
 
@@ -161,7 +161,7 @@ export function buildEvidence(input: {
       )}, free cash flow ${fmtMoney(t.freeCashFlow)}, total debt ${fmtMoney(t.totalDebt)}, cash and short-term investments ${fmtMoney(
         (t.cashAndEquivalents ?? 0) + (t.shortTermInvestments ?? 0)
       )}.`,
-      { provider: "fundamentals (TTM, computed)", asOf: now, period: "TTM" }
+      { provider: "fundamentals (TTM, computed)", asOf: now }
     );
   }
 
@@ -179,7 +179,7 @@ export function buildEvidence(input: {
       } — ${beat} estimates${
         e.epsSurprisePercent !== undefined ? ` by ${e.epsSurprisePercent.toFixed(1)}%` : ""
       }.`,
-      { provider: "earnings", asOf: now, period: e.period }
+      { provider: "earnings", asOf: now }
     );
   }
 
