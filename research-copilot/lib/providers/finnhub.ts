@@ -136,7 +136,7 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
         };
         for (const field of Object.keys(CONCEPTS)) {
           const v = pick(field);
-          if (v !== undefined) (period as Record<string, unknown>)[field] = v;
+          if (v !== undefined) (period as unknown as Record<string, unknown>)[field] = v;
         }
         // capex is reported as a positive outflow; normalise to a positive magnitude
         if (period.capex !== undefined) period.capex = Math.abs(period.capex);
