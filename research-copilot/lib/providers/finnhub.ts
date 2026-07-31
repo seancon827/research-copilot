@@ -134,7 +134,7 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
           fiscalYear: row.year,
           fiscalQuarter: freq === "quarterly" ? row.quarter : undefined,
         };
-        for (const field of Object.keys(CONCEPTS) as (keyoff typeof CONCEPTS)[]) {
+        for (const field of Object.keys(CONCEPTS) as (keyof typeof CONCEPTS)[]) {
           const v = pick(field);
           if (v !== undefined) (period as unknown as Record<string, unknown>)[field] = v;
         }
