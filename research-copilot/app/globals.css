@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * The visual system has one job beyond looking like a terminal: make the
+ * difference between retrieved data and model output impossible to miss.
+ *
+ *   monospace + amber  -> a number that came from a filing or a data vendor
+ *   sans + cyan        -> a sentence a language model wrote
+ *
+ * An analyst scanning the page should never have to wonder which one they are
+ * reading. This is the whole design thesis.
+ */
+
+:root {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-term-bg text-term-text font-sans antialiased;
+  /* Faint scanline texture. Subtle enough to read as CRT phosphor rather than
+     as a gimmick; disabled under reduced-motion-adjacent preferences below. */
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* --- typographic roles --------------------------------------------------- */
+
+.label {
+  @apply font-mono text-2xs uppercase tracking-wider text-term-dim;
+}
+
+.datum {
+  @apply font-mono tabular-nums text-term-bright;
+}
+
+/* Retrieved facts get the amber treatment. */
+.fact {
+  @apply font-mono tabular-nums text-fact;
+}
+
+/* Model prose. Sans, cyan-tinted, wider leading for reading rather than scanning. */
+.prose-ai {
+  @apply font-sans text-[0.9375rem] leading-relaxed text-term-text;
+}
+
+.prose-ai strong {
+  @apply text-term-bright font-semibold;
+}
+
+/* --- panels -------------------------------------------------------------- */
+
+.panel {
+  @apply border border-term-line bg-term-panel;
+}
+
+.panel-header {
+  @apply flex items-center justify-between gap-3 border-b border-term-line px-4 py-2.5;
+}
+
+/* --- citation chip: the signature element -------------------------------- */
+
+.cite {
+  @apply ml-0.5 inline-flex h-[1.05em] min-w-[1.6em] translate-y-[-1px] items-center justify-center
+         rounded-sm border border-infer/40 bg-infer/10 px-1 align-middle
+         font-mono text-[0.65rem] font-medium text-infer transition-colors;
+}
+
+.cite:hover,
+.cite:focus-visible {
+  @apply border-infer bg-infer/25 text-term-bright outline-none;
+}
+
+/* Highlight the target row when a chip is activated. */
+.evidence-row[data-active="true"] {
+  @apply border-l-2 border-l-infer bg-infer/5;
+}
+
+/* --- unsupported-claim marker ------------------------------------------- */
+
+.unsupported {
+  @apply border-l-2 border-l-down/70 bg-down/5 pl-2;
+}
+
+/* --- scrollbars: thin, terminal-appropriate ----------------------------- */
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-term-line;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-term-dim;
+}
+
+/* --- accessibility floor ------------------------------------------------- */
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-fact;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  body {
+    background-image: none;
+  }
+}
+
+/* --- light mode: keep the data/inference distinction, invert the shell ---- */
+
+html[data-theme="light"] body {
+  @apply bg-[#F7F8FA] text-[#20262E];
+  background-image: none;
+}
+html[data-theme="light"] .panel {
+  @apply border-[#DDE3EA] bg-white;
+}
+html[data-theme="light"] .panel-header {
+  @apply border-[#DDE3EA];
+}
+html[data-theme="light"] .datum {
+  @apply text-[#111820];
+}
+html[data-theme="light"] .fact {
+  @apply text-[#9A5B00];
+}
+html[data-theme="light"] .label,
+html[data-theme="light"] .prose-ai {
+  @apply text-[#4A5665];
+}
+html[data-theme="light"] .cite {
+  @apply border-[#0E8C82]/40 bg-[#0E8C82]/10 text-[#0E7A72];
+}
