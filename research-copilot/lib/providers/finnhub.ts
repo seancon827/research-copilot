@@ -120,7 +120,7 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
           const num = typeof c.value === "number" ? c.value : Number(c.value);
           if (name && Number.isFinite(num) && !index.has(name)) index.set(name, num);
         }
-        const pick = (field: CONCEPTS): number | undefined => {
+        const pick = (field:keyof typeof CONCEPTS): number | undefined => {
           for (const concept of CONCEPTS[field] ?? []) {
             const v = index.get(concept);
             if (v !== undefined) return v;
