@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import type OpenAI from "openai";
-import { openai, MODEL } from "@/lib/ai/client";
+import { openai, MODEL, tuning } from "@/lib/ai/client";
 import { executeTool, toolDefinitions } from "@/lib/ai/tools";
 import { CHAT_PROMPT } from "@/lib/ai/prompts";
 import { EvidencePack, verify } from "@/lib/ai/evidence";
@@ -78,8 +78,7 @@ export async function POST(req: NextRequest) {
 
           const completion = await openai.chat.completions.create({
             model: MODEL,
-            temperature: 0.3,
-            max_tokens: 1600,
+            ...tuning(1600, 0.3),
             stream: true,
             messages,
             // On the final round, drop the tools so the model must answer in text.
