@@ -16,6 +16,23 @@ export const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 export const MODEL = env.OPENAI_MODEL;
 export const EMBED_MODEL = env.OPENAI_EMBED_MODEL;
 
+/**
+ * Per-model request tuning.
+ *
+ * GPT-5 and the o-series renamed `max_tokens` to `max_completion_tokens` and
+ * dropped support for any temperature other than the default. Older models
+ * accept the opposite convention. Since MODEL is configurable by design, the
+ * client has to speak both dialects rather than pin itself to one generation —
+ * otherwise every model upgrade becomes a code change, which is exactly what
+ * making the model an env var was meant to avoid.
+ */
+export function tuning(maxTokens: number, temperature: number) {
+  const reasoningEra = /^(gpt-5|o[1-9])/.test(MODEL);
+  return reasoningEra
+    ? { max_completion_tokens: maxTokens }
+    : { max_tokens: maxTokens, temperature };
+}
+
 export interface CompletionOpts {
   system: string;
   user: string;
@@ -27,8 +44,7 @@ export interface CompletionOpts {
 export async function complete({ system, user, temperature = 0.2, maxTokens = 1400 }: CompletionOpts): Promise<string> {
   const res = await openai.chat.completions.create({
     model: MODEL,
-    temperature,
-    max_tokens: maxTokens,
+    ...tuning(maxTokens, temperature),
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
@@ -44,6 +60,11 @@ export async function complete({ system, user, temperature = 0.2, maxTokens = 14
  * your schema. The retry passes the Zod error back to the model, which fixes
  * the overwhelming majority of shape violations on the second pass.
  */
+// Generic over the schema, not over T. `z.ZodType<T>` forces input and output to
+// be the same type, which is wrong for any schema using .default() — there,
+// `citations` is optional going in and guaranteed coming out. Parameterising on
+// the schema and returning z.output<S> gives callers the post-parse type, which
+// is what safeParse actually hands back.
 export async function completeJson<S extends z.ZodTypeAny>(
   schema: S,
   { system, user, temperature = 0.1, maxTokens = 2600 }: CompletionOpts
@@ -56,8 +77,7 @@ export async function completeJson<S extends z.ZodTypeAny>(
   for (let attempt = 0; attempt < 2; attempt++) {
     const res = await openai.chat.completions.create({
       model: MODEL,
-      temperature,
-      max_tokens: maxTokens,
+      ...tuning(maxTokens, temperature),
       response_format: { type: "json_object" },
       messages,
     });
@@ -97,8 +117,7 @@ export async function* streamText({
 }: CompletionOpts & { history?: OpenAI.Chat.ChatCompletionMessageParam[] }): AsyncGenerator<string> {
   const stream = await openai.chat.completions.create({
     model: MODEL,
-    temperature,
-    max_tokens: maxTokens,
+    ...tuning(maxTokens, temperature),
     stream: true,
     messages: [{ role: "system", content: system }, ...history, { role: "user", content: user }],
   });
