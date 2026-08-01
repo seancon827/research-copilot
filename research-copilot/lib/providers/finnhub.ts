@@ -116,7 +116,7 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
         const all = [...(row.report.ic ?? []), ...(row.report.bs ?? []), ...(row.report.cf ?? [])];
         const index = new Map<string, number>();
         for (const c of all) {
-          const name = (c.concept ?? "").replace(/^us-gaap:/, "");
+          const name = (c.concept ?? "").replace(/^[A-Za-z][A-Za-z0-9-]*[:_]/, "");
           const num = typeof c.value === "number" ? c.value : Number(c.value);
           if (name && Number.isFinite(num) && !index.has(name)) index.set(name, num);
         }
