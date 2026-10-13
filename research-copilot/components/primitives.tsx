@@ -71,7 +71,7 @@ export function ClaimLine({ text, citations }: { text: string; citations?: strin
         {text}
         <Cite ids={citations ?? []} />
         {unsupported && (
-          <span className="ml-1.5 font-mono text-2xs uppercase tracking-wider text-down" title="No retrieved source backs this figure">
+          <span className="ml-1.5 font-sans text-2xs italic text-down" title="No retrieved source backs this figure">
             unsupported
           </span>
         )}
@@ -137,8 +137,8 @@ export function Panel({
     <section className={clsx("panel animate-fade-up", className)}>
       <header className="panel-header">
         <div className="min-w-0">
-          <h2 className="label text-term-text">{title}</h2>
-          {subtitle && <p className="mt-0.5 truncate font-mono text-2xs text-term-dim">{subtitle}</p>}
+          <h2 className="section-title">{title}</h2>
+          {subtitle && <p className="mt-1 truncate font-sans text-2xs text-term-dim">{subtitle}</p>}
         </div>
         {action}
       </header>
@@ -167,10 +167,10 @@ export function Metric({
   }[tone];
 
   return (
-    <div className="border-b border-r border-term-line px-3 py-2.5 last:border-r-0">
+    <div className="border-b border-r border-term-line/60 px-5 py-4 last:border-r-0">
       <div className="label">{label}</div>
-      <div className={clsx("mt-1 text-sm", toneClass)}>{value}</div>
-      {hint && <div className="mt-0.5 font-mono text-2xs text-term-dim">{hint}</div>}
+      <div className={clsx("mt-1.5 text-figure-sm", toneClass)}>{value}</div>
+      {hint && <div className="mt-1 font-sans text-2xs leading-snug text-term-dim">{hint}</div>}
     </div>
   );
 }
@@ -256,7 +256,7 @@ export function Pill({ children, tone = "neutral" }: { children: ReactNode; tone
     infer: "border-infer/40 bg-infer/10 text-infer",
   }[tone];
   return (
-    <span className={clsx("inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono text-2xs uppercase tracking-wider", tones)}>
+    <span className={clsx("inline-flex items-center rounded-chip border px-2 py-0.5 font-sans text-2xs", tones)}>
       {children}
     </span>
   );
