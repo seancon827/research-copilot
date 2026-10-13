@@ -38,11 +38,28 @@ export function normalise(period: FinancialPeriod): FinancialPeriod {
   if (p.totalEquity === undefined && p.totalAssets !== undefined && p.totalLiabilities !== undefined) {
     p.totalEquity = p.totalAssets - p.totalLiabilities;
   }
-  // EBITDA is not a GAAP line. Approximate as operating income + D&A when we
-  // have it; otherwise leave undefined rather than guess. Flagged in the UI as
-  // an approximation.
+  // Not every filer presents an operating income subtotal. Integrated oil
+  // majors are the clearest case: ExxonMobil files no OperatingIncomeLoss tag
+  // at all, because its income statement runs straight from revenues through
+  // a list of expenses to "income before income taxes". Reconstruct EBIT from
+  // that line — pretax income already has interest deducted, so adding it back
+  // gives earnings before interest and tax.
+  //
+  // This is an approximation, not the reported figure: it folds in
+  // non-operating income the filer kept below the operating line. It is the
+  // standard reconstruction analysts use, and the alternative is leaving
+  // operating margin, EBITDA and ROIC blank for a company whose statements are
+  // otherwise complete.
+  if (p.operatingIncome === undefined && p.pretaxIncome !== undefined) {
+    p.operatingIncome = p.pretaxIncome + (p.interestExpense ?? 0);
+  }
+
+  // EBITDA is not a GAAP line. Add D&A back to operating income when the cash
+  // flow statement gives it to us. Without D&A we fall back to operating income
+  // alone, which understates EBITDA — materially so for capital-intensive
+  // filers — so the UI labels that case as a floor rather than a true EBITDA.
   if (p.ebitda === undefined && p.operatingIncome !== undefined) {
-    p.ebitda = p.operatingIncome; // conservative floor: excludes D&A add-back
+    p.ebitda = p.operatingIncome + (p.depreciationAmortisation ?? 0);
   }
   return p;
 }
