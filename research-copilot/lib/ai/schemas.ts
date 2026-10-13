@@ -243,10 +243,49 @@ export const ValuationCommentary = z.object({
 });
 export type ValuationCommentary = z.infer<typeof ValuationCommentary>;
 
+/**
+ * Investment horizon, bucketed.
+ *
+ * The four buckets exist so the UI can render a consistent pill, but they are
+ * our categories, not the model's — "12 months" and "about a year" are correct
+ * answers that simply are not spelled like an enum member. Rather than fail the
+ * whole recommendation over the label, read any duration out of the string and
+ * place it in the bucket it falls in. A horizon with no duration in it at all
+ * still fails, because then we genuinely do not know what was meant.
+ */
+const HORIZONS = ["3-6 months", "6-12 months", "1-3 years", "3+ years"] as const;
+
+const horizonBucket = z.preprocess((v: unknown) => {
+  if (typeof v !== "string") return v;
+  const s = v.trim().toLowerCase().replace(/[\u2013\u2014]/g, "-");
+
+  const exact = HORIZONS.find((o) => o === s);
+  if (exact) return exact;
+
+  // Take the largest duration mentioned, so a range lands on its upper bound.
+  const months = [...s.matchAll(/(\d+(?:\.\d+)?)\s*(year|yr|month|mo)/g)]
+    .map((match) => {
+      const n = Number(match[1]);
+      return (match[2] ?? "").startsWith("y") ? n * 12 : n;
+    })
+    .filter((n) => Number.isFinite(n));
+  const m = months.length ? Math.max(...months) : NaN;
+
+  if (!Number.isFinite(m)) {
+    if (/\blong[- ]?term\b|\bmulti[- ]?year\b/.test(s)) return "3+ years";
+    if (/\bnear[- ]?term\b|\bshort[- ]?term\b/.test(s)) return "3-6 months";
+    return v;
+  }
+  if (m <= 6) return "3-6 months";
+  if (m <= 12) return "6-12 months";
+  if (m <= 36) return "1-3 years";
+  return "3+ years";
+}, z.enum(HORIZONS));
+
 export const Recommendation = z.object({
   rating: lenientEnum(["buy", "hold", "sell"] as const),
   confidence: z.coerce.number().min(0).max(100),
-  horizon: lenientEnum(["3-6 months", "6-12 months", "1-3 years", "3+ years"] as const),
+  horizon: horizonBucket,
   reasoning: list(Claim),
   /** What would have to happen for this rating to be wrong. */
   whatWouldChangeThis: list(z.string()),
