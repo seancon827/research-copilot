@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * The visual system has one job beyond looking considered: make the difference
+ * between retrieved data and model output impossible to miss.
+ *
+ *   serif figures, sepia   -> a number that came from a filing or a data vendor
+ *   serif prose, slate     -> a sentence a language model wrote
+ *
+ * An analyst scanning the page should never have to wonder which one they are
+ * reading. That is the design thesis, and it survived the move from terminal
+ * to document — only the register changed.
+ *
+ * Light is the designed state here; dark is the override at the foot of this
+ * file. That is the reverse of the earlier build.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-term-bg text-term-text font-sans antialiased;
+  /* Paper, not a gradient. A single very low-contrast fibre texture, built
+     from two offset radial gradients so it does not tile visibly. It reads as
+     stock rather than as an effect, and disappears entirely on dark. */
+  background-image:
+    radial-gradient(circle at 17% 23%, rgba(28, 33, 29, 0.016) 0 1px, transparent 1px),
+    radial-gradient(circle at 71% 68%, rgba(28, 33, 29, 0.012) 0 1px, transparent 1px);
+  background-size: 23px 23px, 31px 31px;
+}
+
+/* --- typographic roles --------------------------------------------------- */
+
+/*
+ * Labels are sentence case. The previous build set them in tracked-out
+ * monospace capitals, which is the house style of a terminal and the single
+ * loudest thing on the page. A printed note names a column quietly and lets
+ * the figure beneath it do the talking.
+ */
+.label {
+  @apply font-sans text-2xs font-medium text-term-dim;
+}
+
+.datum {
+  @apply font-mono tabular-nums text-term-bright;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Retrieved facts: ledger ink. */
+.fact {
+  @apply font-mono tabular-nums text-fact;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/*
+ * Model prose is set in the serif, at a reading size with generous leading and
+ * a measure that stops short of 75 characters. This is the text a person
+ * actually reads rather than scans, and it is the majority of the page.
+ */
+.prose-ai {
+  @apply font-serif text-[1.0625rem] leading-[1.65] text-term-text;
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+.prose-ai strong {
+  @apply font-semibold text-term-bright;
+}
+
+/* --- sheets -------------------------------------------------------------- */
+
+/*
+ * Two surface treatments, and the difference means something.
+ *
+ * `.panel` is a sheet: it holds a block of content, so it gets a defined edge
+ * and a slight lift off the paper, the way a printed table sits in a report.
+ * The lift is deliberately almost imperceptible — one shadow, used at one
+ * depth. Giving every card the same soft grey drop shadow is what makes a page
+ * read as a template.
+ */
+.panel {
+  @apply rounded-sheet border border-term-line bg-term-panel shadow-sheet;
+}
+
+.panel-header {
+  @apply flex items-baseline justify-between gap-4 border-b border-term-line/70 px-gutter py-4;
+}
+
+/*
+ * Section headings. Serif, set at a size that carries without shouting, and
+ * sentence case — a research note titles a section "Bull case", not "BULL
+ * CASE".
+ */
+.section-title {
+  @apply font-serif text-[1.0625rem] font-semibold tracking-[-0.01em] text-term-bright;
+}
+
+/* Hero figures: the one place this design raises its voice. */
+.figure {
+  @apply font-mono text-figure font-normal text-term-bright;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* --- citation mark: the signature element -------------------------------- */
+
+/*
+ * A citation is an annotation, so it is set like one: a small raised serif
+ * mark, the way a footnote reference sits in printed text. The previous build
+ * used a glowing pill, which competed with the sentence it was attached to.
+ */
+.cite {
+  @apply ml-[0.15em] inline-flex min-w-[1.5em] translate-y-[-0.3em] items-center justify-center
+         rounded-chip border-b border-infer/35 px-[0.2em] align-baseline
+         font-mono text-[0.68em] font-medium text-infer transition-colors;
+  font-variant-numeric: lining-nums;
+}
+
+.cite:hover,
+.cite:focus-visible {
+  @apply border-b-infer bg-infer/10 text-term-bright outline-none;
+}
+
+/* Highlight the target row when a mark is activated. */
+.evidence-row[data-active="true"] {
+  @apply border-l-2 border-l-infer bg-infer/[0.06];
+}
+
+/* --- unsupported-claim marker ------------------------------------------- */
+
+.unsupported {
+  @apply border-l-2 border-l-down/60 bg-down/[0.04] pl-3;
+}
+
+/* --- scrollbars ---------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-term-line;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-term-dim;
+}
+
+/* --- accessibility floor ------------------------------------------------- */
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-infer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  body {
+    background-image: none;
+  }
+}
+
+/* --- dark: the same document, printed on a darker stock ------------------ */
+
+html[data-theme="dark"] body {
+  @apply bg-[#191B19] text-[#D6D4CA];
+  background-image: none;
+}
+html[data-theme="dark"] .panel {
+  @apply border-[#2B2E2B] bg-[#1F221F] shadow-none;
+}
+html[data-theme="dark"] .panel-header {
+  @apply border-[#2B2E2B];
+}
+html[data-theme="dark"] .datum,
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .figure {
+  @apply text-[#F0EEE4];
+}
+html[data-theme="dark"] .fact {
+  @apply text-[#C9A96A];
+}
+html[data-theme="dark"] .label {
+  @apply text-[#8B9088];
+}
+html[data-theme="dark"] .prose-ai {
+  @apply text-[#CFCDC3];
+}
+html[data-theme="dark"] .cite {
+  @apply border-b-[#7FA3AD]/45 text-[#8FB2BC];
+}
