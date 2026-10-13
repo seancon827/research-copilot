@@ -1,22 +1,38 @@
 import type { Metadata } from "next";
-import { Inter, IBM_Plex_Mono } from "next/font/google";
+import { Source_Serif_4, Archivo } from "next/font/google";
 import "./globals.css";
 
 /**
- * Type pairing is doing real work here, not decoration.
+ * Two faces, and the division of labour is the design.
  *
- * IBM Plex Mono for data: it was designed for IBM's technical documentation, has
- * true tabular figures, and a distinct 0/O — which matters when someone is
- * reading a share count. Inter for model prose: high x-height, reads well at 15px
- * in long paragraphs where a monospace face would be exhausting.
+ * Source Serif 4 sets every figure and every sentence the model writes. It was
+ * drawn for extended on-screen reading and ships true tabular lining figures,
+ * so a column of revenue numbers aligns on the decimal the way it would in a
+ * printed statement. Setting financial figures in a serif is not a stylistic
+ * flourish — it is what annual reports and research notes have always done,
+ * and it is the single thing that stops this looking like another dashboard.
  *
- * The two faces are how the reader tells data from inference at a glance.
+ * Archivo takes the interface chrome only: tabs, buttons, chips, column
+ * labels. A grotesque at small sizes stays quiet and legible next to the
+ * serif, and keeps the UI from competing with the document.
+ *
+ * Note the variable names. `--font-figure` feeds Tailwind's `mono` token,
+ * because every number in this codebase is already marked up as `font-mono
+ * tabular-nums` — the correct semantic for aligned columns, whatever face
+ * fills it.
  */
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const mono = IBM_Plex_Mono({
+const figure = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-figure",
+  display: "swap",
+});
+
+const ui = Archivo({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-mono",
+  variable: "--font-ui",
   display: "swap",
 });
 
@@ -27,7 +43,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" data-theme="light" className={`${figure.variable} ${ui.variable}`}>
       <body>{children}</body>
     </html>
   );
