@@ -61,11 +61,17 @@ export async function quote(ticker: string): Promise<Quote> {
  */
 const CONCEPTS: Record<keyof FinancialPeriod & string, string[]> = {
   revenue: [
+    // Banks first: they also tag fee income under the contract-with-customer
+    // concepts, so matching those first would report a large bank's revenue as
+    // its fee line alone. JPMorgan's FY2025 top line is RevenuesNetOfInterest-
+    // Expense ($182.4bn); its contract-with-customer tag is a fraction of that.
+    "RevenuesNetOfInterestExpense",
     "RevenueFromContractWithCustomerExcludingAssessedTax",
     "RevenueFromContractWithCustomerIncludingAssessedTax",
     "Revenues",
     "SalesRevenueNet",
     "TotalRevenues",
+    "InterestAndDividendIncomeOperating",
   ],
   costOfRevenue: ["CostOfRevenue", "CostOfGoodsAndServicesSold", "CostOfGoodsSold"],
   grossProfit: ["GrossProfit"],
@@ -82,7 +88,16 @@ const CONCEPTS: Record<keyof FinancialPeriod & string, string[]> = {
   shortTermInvestments: ["ShortTermInvestments", "MarketableSecuritiesCurrent"],
   currentAssets: ["AssetsCurrent"],
   currentLiabilities: ["LiabilitiesCurrent"],
-  operatingCashFlow: ["NetCashProvidedByUsedInOperatingActivities"],
+  operatingCashFlow: [
+    "NetCashProvidedByUsedInOperatingActivities",
+    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+  ],
+  depreciationAmortisation: [
+    "DepreciationDepletionAndAmortization",
+    "DepreciationAmortizationAndAccretionNet",
+    "DepreciationAndAmortization",
+    "Depreciation",
+  ],
   capex: ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"],
   dividendsPaid: ["PaymentsOfDividendsCommonStock", "PaymentsOfDividends"],
   buybacks: ["PaymentsForRepurchaseOfCommonStock"],
@@ -116,17 +131,21 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
         const all = [...(row.report.ic ?? []), ...(row.report.bs ?? []), ...(row.report.cf ?? [])];
         const index = new Map<string, number>();
         for (const c of all) {
+          // Finnhub is inconsistent about namespace prefixes across filers:
+          // "us-gaap:Revenues", "us-gaap_Revenues" and bare "Revenues" all occur.
+          // Strip any leading namespace rather than matching one spelling.
           const name = (c.concept ?? "").replace(/^[A-Za-z][A-Za-z0-9-]*[:_]/, "");
           const num = typeof c.value === "number" ? c.value : Number(c.value);
           if (name && Number.isFinite(num) && !index.has(name)) index.set(name, num);
         }
-        const pick = (field:keyof typeof CONCEPTS): number | undefined => {
-          for (const concept of CONCEPTS[field] ?? []) {
+        const first = (concepts: string[]): number | undefined => {
+          for (const concept of concepts) {
             const v = index.get(concept);
             if (v !== undefined) return v;
           }
           return undefined;
         };
+        const pick = (field: keyof typeof CONCEPTS): number | undefined => first(CONCEPTS[field] ?? []);
 
         const period: FinancialPeriod = {
           period: freq === "annual" ? `FY${row.year}` : `Q${row.quarter} ${row.year}`,
@@ -138,6 +157,25 @@ export async function statements(ticker: string, freq: "annual" | "quarterly"): 
           const v = pick(field);
           if (v !== undefined) (period as unknown as Record<string, unknown>)[field] = v;
         }
+        // Total debt has no single GAAP tag: it is the current and non-current
+        // borrowings added together, and filers split them under different
+        // names. Summing is why this cannot go through the CONCEPTS map, which
+        // is first-match-wins by design.
+        const debtCurrent = first([
+          "DebtCurrent",
+          "LongTermDebtCurrent",
+          "ShortTermBorrowings",
+          "CommercialPaper",
+        ]);
+        const debtNoncurrent = first([
+          "LongTermDebtNoncurrent",
+          "LongTermDebt",
+          "LongTermDebtAndCapitalLeaseObligations",
+        ]);
+        if (debtCurrent !== undefined || debtNoncurrent !== undefined) {
+          period.totalDebt = (debtCurrent ?? 0) + (debtNoncurrent ?? 0);
+        }
+
         // capex is reported as a positive outflow; normalise to a positive magnitude
         if (period.capex !== undefined) period.capex = Math.abs(period.capex);
         return period;
