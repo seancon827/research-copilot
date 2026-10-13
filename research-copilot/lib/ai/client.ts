@@ -83,6 +83,10 @@ export async function completeJson<S extends z.ZodTypeAny>(
     { role: "user", content: user },
   ];
 
+  // Carried out of the loop so the final error can say what actually went
+  // wrong. "Did not return schema-valid JSON" is not a diagnosis.
+  let lastProblem = "no response recorded";
+
   for (let attempt = 0; attempt < 2; attempt++) {
     const res = await openai.chat.completions.create({
       model: MODEL,
@@ -100,11 +104,21 @@ export async function completeJson<S extends z.ZodTypeAny>(
           `On reasoning models the limit covers thinking as well as output — raise maxTokens for this task.`
       );
     }
-    const content = choice?.message?.content ?? "{}";
+    const content = choice?.message?.content ?? "";
+
+    // Reasoning models can return an empty body having spent the whole budget
+    // thinking. `?? "{}"` will not catch this: the field is present, just blank.
+    if (!content.trim()) {
+      lastProblem = `empty response body (finish_reason: ${choice?.finish_reason ?? "unknown"})`;
+      messages.push({ role: "user", content: "You returned nothing. Return the JSON object now." });
+      continue;
+    }
+
     let parsedJson: unknown;
     try {
       parsedJson = JSON.parse(content);
     } catch {
+      lastProblem = `response was not parseable as JSON (began: ${content.slice(0, 80)})`;
       messages.push({ role: "assistant", content });
       messages.push({ role: "user", content: "That was not valid JSON. Return only a valid JSON object." });
       continue;
@@ -112,6 +126,10 @@ export async function completeJson<S extends z.ZodTypeAny>(
 
     const result = schema.safeParse(parsedJson);
     if (result.success) return result.data;
+
+    lastProblem = `schema mismatch — ${result.error.issues
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ")}`;
 
     messages.push({ role: "assistant", content });
     messages.push({
@@ -122,7 +140,7 @@ export async function completeJson<S extends z.ZodTypeAny>(
     });
   }
 
-  throw new Error("Model did not return schema-valid JSON after a repair attempt");
+  throw new Error(`Model failed after a repair attempt — ${lastProblem}`);
 }
 
 /** Streaming completion as an async iterable of text deltas. */
