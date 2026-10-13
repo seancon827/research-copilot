@@ -144,7 +144,7 @@ export function ChatDock({ ticker, evidence }: { ticker: string; evidence: Evide
         <>
           <div ref={scrollRef} className="max-h-[42vh] min-h-[120px] overflow-y-auto border-t border-term-line">
             {turns.length === 0 ? (
-              <div className="p-4">
+              <div className="p-gutter">
                 <p className="text-sm text-term-dim">
                   Ask about {ticker}. Answers are bounded by the {evidence.length} retrieved evidence items and by live
                   tool calls — never by the model&apos;s recollection.
@@ -213,7 +213,7 @@ export function ChatDock({ ticker, evidence }: { ticker: string; evidence: Evide
             <button
               type="submit"
               disabled={busy || !input.trim()}
-              className="rounded-sm border border-infer/40 bg-infer/10 px-2.5 py-1 font-mono text-2xs uppercase tracking-wider text-infer transition-colors hover:bg-infer/20 disabled:opacity-40"
+              className="rounded-sm border border-infer/40 bg-infer/10 px-2.5 py-1 font-sans text-2xs text-infer transition-colors hover:bg-infer/20 disabled:opacity-40"
             >
               {busy ? "thinking" : "ask"}
             </button>

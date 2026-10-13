@@ -110,7 +110,7 @@ export function Sidebar({ activeTicker }: { activeTicker?: string }) {
             maxLength={10}
             className="w-full bg-transparent font-mono text-sm uppercase text-term-bright placeholder:text-term-dim focus:outline-none"
           />
-          <button type="submit" className="font-mono text-2xs uppercase tracking-wider text-fact hover:text-term-bright">
+          <button type="submit" className="font-sans text-2xs font-medium text-term-bright hover:text-fact">
             run
           </button>
         </div>
@@ -192,7 +192,7 @@ export function Sidebar({ activeTicker }: { activeTicker?: string }) {
           <button
             type="button"
             onClick={() => toggle(activeTicker)}
-            className="w-full rounded-sm border border-term-line px-2 py-1.5 font-mono text-2xs uppercase tracking-wider text-term-dim hover:border-fact/50 hover:text-fact"
+            className="w-full rounded-chip border border-term-line px-3 py-2 font-sans text-2xs text-term-dim hover:border-term-dim hover:text-term-text"
           >
             {has(activeTicker) ? "★ remove from watchlist" : "☆ add to watchlist"}
           </button>
@@ -214,10 +214,10 @@ function SidebarSection({ title, children }: { title: string; children: React.Re
 }
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
-    const saved = (window.localStorage.getItem("rc:theme") as "dark" | "light" | null) ?? "dark";
+    const saved = (window.localStorage.getItem("rc:theme") as "dark" | "light" | null) ?? "light";
     setTheme(saved);
     document.documentElement.dataset.theme = saved;
   }, []);
@@ -233,9 +233,9 @@ function ThemeToggle() {
     <button
       type="button"
       onClick={flip}
-      className="border-t border-term-line px-4 py-2 text-left font-mono text-2xs uppercase tracking-wider text-term-dim hover:text-term-text"
+      className="border-t border-term-line px-gutter py-3 text-left font-sans text-2xs text-term-dim hover:text-term-text"
     >
-      {theme === "dark" ? "◐ light mode" : "◑ dark mode"}
+      {theme === "dark" ? "Light paper" : "Dark paper"}
     </button>
   );
 }
