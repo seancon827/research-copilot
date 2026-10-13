@@ -79,9 +79,58 @@ const lenientEnum = <T extends readonly [string, ...string[]]>(values: T) =>
 // Schemas
 // --------------------------------------------------------------------------
 
+/**
+ * Lift inline citation markers out of an object's prose into its `citations`
+ * array.
+ *
+ * The model is told to cite evidence ids, and it does — but it writes them
+ * where a person would, inside the sentence: `"...reserves [S2]."` with
+ * `citations: []`. The UI reads the array, not the prose, so a properly
+ * sourced claim renders with its ids visible AND an "unsupported" flag beside
+ * them. That is the worst possible output: it tells the reader the grounding
+ * failed when the grounding worked, which discredits every other claim on the
+ * page.
+ *
+ * So: pull the ids into the array, strip them from the text, and let the
+ * citation chips render them. Same information, in the field that drives the
+ * UI.
+ */
+const CITE_IN_TEXT = /\[([A-Z]\d{1,3}(?:\s*,\s*[A-Z]\d{1,3})*)\]/g;
+
+const liftCites = (v: unknown): unknown => {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return v;
+  const o = { ...(v as Record<string, unknown>) };
+  const found: string[] = [];
+
+  for (const [k, val] of Object.entries(o)) {
+    if (k === "citations" || typeof val !== "string") continue;
+    o[k] = val
+      .replace(CITE_IN_TEXT, (_m, group: string) => {
+        for (const part of group.split(",")) {
+          const id = part.trim();
+          if (id) found.push(id);
+        }
+        return "";
+      })
+      .replace(/\s+([.,;:])/g, "$1")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  if (!found.length) return o;
+  const have = Array.isArray(o.citations)
+    ? (o.citations as unknown[]).filter((x): x is string => typeof x === "string")
+    : [];
+  o.citations = [...new Set([...have, ...found])];
+  return o;
+};
+
+/** String-or-object coercion plus citation lifting, for any shape that cites. */
+const claimish = (key: string) => (v: unknown) => liftCites(fromString(key)(v));
+
 /** A claim plus the evidence ids backing it. Validated against the pack later. */
 export const Claim = z.preprocess(
-  fromString("text"),
+  claimish("text"),
   z.object({
     text: z.string().min(1),
     citations: cites,
@@ -93,13 +142,13 @@ export const CompanyOverview = z.object({
   businessSummary: z.string(),
   products: list(
     z.preprocess(
-      fromString("name"),
+      claimish("name"),
       z.object({ name: z.string(), description: z.string().default(""), citations: cites })
     )
   ),
   revenueBreakdown: list(
     z.preprocess(
-      fromString("segment"),
+      claimish("segment"),
       z.object({
         segment: z.string(),
         sharePercent: pct.describe("null when the split is not disclosed in the evidence"),
@@ -109,7 +158,7 @@ export const CompanyOverview = z.object({
   ),
   geographicExposure: list(
     z.preprocess(
-      fromString("region"),
+      claimish("region"),
       z.object({ region: z.string(), sharePercent: pct, citations: cites })
     )
   ),
@@ -122,7 +171,7 @@ export const CompanyOverview = z.object({
   industry: z.string(),
   management: list(
     z.preprocess(
-      fromString("name"),
+      claimish("name"),
       z.object({ name: z.string(), role: z.string().default(""), citations: cites })
     )
   ),
@@ -188,7 +237,7 @@ export const InvestmentThesis = z.object({
   bearCase: list(Claim),
   catalysts: list(
     z.preprocess(
-      fromString("text"),
+      claimish("text"),
       z.object({
         text: z.string(),
         expectedTiming: z.string().default("not stated"),
@@ -198,7 +247,7 @@ export const InvestmentThesis = z.object({
   ),
   risks: list(
     z.preprocess(
-      fromString("text"),
+      claimish("text"),
       z.object({
         text: z.string(),
         severity: lenientEnum(["low", "medium", "high"] as const).default("medium"),
@@ -218,7 +267,7 @@ export type InvestmentThesis = z.infer<typeof InvestmentThesis>;
 export const ValuationCommentary = z.object({
   assumptionCritique: list(
     z.preprocess(
-      fromString("assumption"),
+      claimish("assumption"),
       z.object({
         assumption: z.string(),
         assessment: lenientEnum(["conservative", "reasonable", "aggressive"] as const).default(
