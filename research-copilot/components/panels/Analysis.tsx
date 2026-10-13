@@ -197,6 +197,16 @@ export function SentimentPanel({ state }: { state: ResearchState }) {
   );
 }
 
+/**
+ * An empty list renders as a bare heading, which reads as a broken section
+ * rather than an absent finding. Say which it is — the whole point of the
+ * report is that the reader can tell the difference between "nothing here"
+ * and "nothing found".
+ */
+function NoneFound({ what }: { what: string }) {
+  return <p className="prose-ai px-4 py-3 text-term-dim">No {what} identified in the retrieved evidence.</p>;
+}
+
 export function ThesisPanel({ state }: { state: ResearchState }) {
   const err = state.sectionErrors.thesis;
   if (err) return <Panel title="Investment thesis"><SectionError section="Thesis" message={err} /></Panel>;
@@ -210,19 +220,24 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Bull case" className="border-t-2 border-t-up/60">
-          <ul className="space-y-1 p-4">
-            {t.bullCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
-          </ul>
+          {t.bullCase.length === 0 ? <NoneFound what="bull-case points" /> : (
+            <ul className="space-y-1 p-4">
+              {t.bullCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
+            </ul>
+          )}
         </Panel>
         <Panel title="Bear case" className="border-t-2 border-t-down/60">
-          <ul className="space-y-1 p-4">
-            {t.bearCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
-          </ul>
+          {t.bearCase.length === 0 ? <NoneFound what="bear-case points" /> : (
+            <ul className="space-y-1 p-4">
+              {t.bearCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
+            </ul>
+          )}
         </Panel>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Catalysts" subtitle="Discrete events with expected timing">
+          {t.catalysts.length === 0 && <NoneFound what="discrete catalysts" />}
           <ul className="divide-y divide-term-line">
             {t.catalysts.map((c, i) => (
               <li key={i} className="px-4 py-2.5">
@@ -237,6 +252,7 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
         </Panel>
 
         <Panel title="Risks" subtitle="Severity is the model's assessment">
+          {t.risks.length === 0 && <NoneFound what="discrete risks" />}
           <ul className="divide-y divide-term-line">
             {t.risks.map((r, i) => (
               <li key={i} className="flex gap-3 px-4 py-2.5">
@@ -253,14 +269,18 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Competitive advantages">
-          <ul className="space-y-1 p-4">
-            {t.competitiveAdvantages.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
-          </ul>
+          {t.competitiveAdvantages.length === 0 ? <NoneFound what="competitive advantages" /> : (
+            <ul className="space-y-1 p-4">
+              {t.competitiveAdvantages.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
+            </ul>
+          )}
         </Panel>
         <Panel title="Valuation concerns">
-          <ul className="space-y-1 p-4">
-            {t.valuationConcerns.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
-          </ul>
+          {t.valuationConcerns.length === 0 ? <NoneFound what="valuation concerns" /> : (
+            <ul className="space-y-1 p-4">
+              {t.valuationConcerns.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
+            </ul>
+          )}
         </Panel>
       </div>
 
