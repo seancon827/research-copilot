@@ -110,7 +110,7 @@ export function ValuationPanel({ state }: { state: ResearchState }) {
         <Panel title="Assumption critique" subtitle="Model assessment of inputs it did not compute">
           <ul className="divide-y divide-term-line">
             {state.valuationCommentary.data.assumptionCritique.map((c, i) => (
-              <li key={i} className="px-4 py-2.5">
+              <li key={i} className="px-gutter py-3.5">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xs text-term-bright">{c.assumption}</span>
                   <Pill tone={c.assessment === "aggressive" ? "down" : c.assessment === "conservative" ? "up" : "neutral"}>

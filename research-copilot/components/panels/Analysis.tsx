@@ -138,7 +138,7 @@ export function SentimentPanel({ state }: { state: ResearchState }) {
 
   return (
     <Panel title="Sentiment" subtitle={composite.method}>
-      <div className="p-4">
+      <div className="p-gutter">
         <div className="flex items-center gap-3">
           <Pill tone={composite.overall === "bullish" ? "up" : composite.overall === "bearish" ? "down" : "neutral"}>
             {composite.overall}
@@ -221,14 +221,14 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Bull case" className="border-t-2 border-t-up/60">
           {t.bullCase.length === 0 ? <NoneFound what="bull-case points" /> : (
-            <ul className="space-y-1 p-4">
+            <ul className="space-y-2 p-gutter">
               {t.bullCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
             </ul>
           )}
         </Panel>
         <Panel title="Bear case" className="border-t-2 border-t-down/60">
           {t.bearCase.length === 0 ? <NoneFound what="bear-case points" /> : (
-            <ul className="space-y-1 p-4">
+            <ul className="space-y-2 p-gutter">
               {t.bearCase.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
             </ul>
           )}
@@ -240,7 +240,7 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
           {t.catalysts.length === 0 && <NoneFound what="discrete catalysts" />}
           <ul className="divide-y divide-term-line">
             {t.catalysts.map((c, i) => (
-              <li key={i} className="px-4 py-2.5">
+              <li key={i} className="px-gutter py-3.5">
                 <div className="label mb-1 text-fact">{c.expectedTiming}</div>
                 <p className="prose-ai">
                   {c.text}
@@ -255,7 +255,7 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
           {t.risks.length === 0 && <NoneFound what="discrete risks" />}
           <ul className="divide-y divide-term-line">
             {t.risks.map((r, i) => (
-              <li key={i} className="flex gap-3 px-4 py-2.5">
+              <li key={i} className="flex gap-4 px-gutter py-3.5">
                 <Pill tone={r.severity === "high" ? "down" : r.severity === "medium" ? "fact" : "neutral"}>{r.severity}</Pill>
                 <p className="prose-ai flex-1">
                   {r.text}
@@ -270,14 +270,14 @@ export function ThesisPanel({ state }: { state: ResearchState }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Competitive advantages">
           {t.competitiveAdvantages.length === 0 ? <NoneFound what="competitive advantages" /> : (
-            <ul className="space-y-1 p-4">
+            <ul className="space-y-2 p-gutter">
               {t.competitiveAdvantages.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
             </ul>
           )}
         </Panel>
         <Panel title="Valuation concerns">
           {t.valuationConcerns.length === 0 ? <NoneFound what="valuation concerns" /> : (
-            <ul className="space-y-1 p-4">
+            <ul className="space-y-2 p-gutter">
               {t.valuationConcerns.map((c, i) => <ClaimLine key={i} text={c.text} citations={c.citations} />)}
             </ul>
           )}
@@ -313,7 +313,7 @@ export function RecommendationPanel({ state }: { state: ResearchState }) {
 
   return (
     <Panel title="Rating" subtitle="Research output, not investment advice">
-      <div className="p-4">
+      <div className="p-gutter">
         <div className="flex flex-wrap items-center gap-3">
           <Pill tone={tone}>{r.rating}</Pill>
           <span className="font-mono text-xs text-infer">{r.confidence}% confidence</span>
@@ -374,7 +374,7 @@ export function EarningsPanel({ state }: { state: ResearchState }) {
 
   return (
     <Panel title="Earnings analysis" subtitle={e.period}>
-      <div className="p-4">
+      <div className="p-gutter">
         <p className="prose-ai">{e.headlineResult}</p>
         {groups.map(([label, claims]) =>
           claims.length === 0 ? null : (
