@@ -7,12 +7,24 @@ import { z } from "zod";
  *    commit to a stated uncertainty rather than sounding uniformly assured
  */
 
-/** A claim plus the evidence ids backing it. Validated against the pack later. */
-export const Claim = z.object({
-  text: z.string().min(1),
-  citations: z.array(z.string()).default([]),
-});
-export type Claim = z.infer<typeof Claim>;
+/**
+ * A claim plus the evidence ids backing it. Validated against the pack later.
+ *
+ * Accepts a bare string as well as the object form. Models reasonably return
+ * `["risk one", "risk two"]` instead of `[{text, citations: []}]` whenever a
+ * task has no citation ids to attach — the filing summariser in particular is
+ * told it has none, so the wrapper looks like pointless ceremony. Coercing here
+ * costs nothing and removes a whole class of repair round-trips; rejecting it
+ * would be insisting on a shape for its own sake.
+ */
+export const Claim = z.preprocess(
+  (v) => (typeof v === "string" ? { text: v, citations: [] } : v),
+  z.object({
+    text: z.string().min(1),
+    citations: z.array(z.string()).default([]),
+  })
+);
+export type Claim = z.output<typeof Claim>;
 
 export const CompanyOverview = z.object({
   businessSummary: z.string(),
