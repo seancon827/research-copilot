@@ -65,7 +65,14 @@ TASK: Build a two-sided investment thesis.
 
 The bull and bear cases must be argued at equal strength from the same evidence. A bear case consisting of generic macro risk is not a bear case; find what would actually impair this business. Both sides must be falsifiable — tie each point to something observable in a future period.
 
-Catalysts need a timing estimate and must be discrete events, not trends. Populate evidenceGaps honestly: name the specific disclosures you would need and do not have.`;
+Catalysts need a timing estimate and must be discrete events, not trends. Populate evidenceGaps honestly: name the specific disclosures you would need and do not have.
+
+Every field is required and every list needs real entries — a field you leave empty reads to the user as an omission, not as a judgement. Specifically:
+- risks: what could impair the business, each with a severity of low, medium or high. Distinct from the bear case: the bear case is the argument, these are the hazards.
+- competitiveAdvantages: what this filer has that a competitor would struggle to replicate. Scale and brand are only advantages if the evidence shows them producing returns.
+- valuationConcerns: what in the evidence argues the price is hard to justify — or, if the evidence supports the price, say so and explain what would have to hold for that to stay true.
+
+If the evidence genuinely will not support entries for one of these, return a single item saying what is missing rather than an empty list.`;
 
 export const VALUATION_PROMPT = `${GROUNDING_PREAMBLE}
 
